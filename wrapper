@@ -74,11 +74,11 @@ case $name in
 	    flags=" --sysroot=${WASM_SYSROOT}"
 	    flags+=" -fdebug-prefix-map=${WASM_BASE}=wasmception://v0.1"
 	    ;;
-	# android (armv7)
-	armv7-linux-androideabi-clang)
+	# android (armv7a)
+	armv7a-linux-androideabi-clang)
     flags=${ANDROID_ARM_CFLAGS}
 		;;
-	armv7-linux-androideabi-ld|armv7-linux-androideabi-ld.gold)
+	armv7a-linux-androideabi-ld|armv7a-linux-androideabi-ld.gold)
     flags=${ANDROID_ARM_LDFLAGS}
 		;;
 	# android (aarch64)
@@ -124,13 +124,14 @@ case $name in
 	*) echo "Unknown command: ${0##*/}" >&2; exit 1;;
 esac
 
+case $target in
+	*-linux-gnueabihf)      export PATH="${RPI_PATH}:${PATH}" ;;
+	armv7a-linux-android*)  export PATH="${ANDROID_ARM_PATH}:${PATH}" ;;
+	aarch64-linux-android*) export PATH="${ANDROID_ARM64_PATH}:${PATH}" ;;
+	x86_64-linux-android*)  export PATH="${ANDROID_X86_64_PATH}:${PATH}" ;;
+	wasm32-*)               export PATH="${WASM_PATH}:${PATH}" ;;
+esac
+
 (>&2 echo "WRAPPED: $cmd $flags $@")
 
-case $target in
-	*-linux-gnueabihf)      exec env PATH="${RPI_PATH}:${PATH}" $cmd $flags "$@" ;;
-	armv7-linux-android*)   exec env PATH="${ANDROID_ARM_PATH}:${PATH}" $cmd $flags "$@" ;;
-	aarch64-linux-android*) exec env PATH="${ANDROID_ARM64_PATH}:${PATH}" $cmd $flags "$@" ;;
-	x86_64-linux-android*)  exec env PATH="${ANDROID_X86_64_PATH}:${PATH}" $cmd $flags "$@" ;;
-	wasm32-*)               exec env PATH="${WASM_PATH}:${PATH}" $cmd $flags "$@" ;;
-	*) exec $cmd $flags "$@" ;;
-esac
+exec $cmd $flags "$@"
